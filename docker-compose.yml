@@ -1,0 +1,50 @@
+version: '3.7'
+services:
+  web:
+    image: httpd
+    ports:
+      - "80:80"
+    links:
+      - fluentd
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: httpd.access
+    deploy:
+      replicas: 1
+
+  fluentd:
+    image: jamal008/fluentd:v0.14.20-debian
+    volumes:
+      - ./fluentd/conf:/fluentd/etc
+    links:
+      - "elasticsearch"
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    deploy:
+      replicas: 1
+
+  elasticsearch:
+    image: elasticsearch:7.3.0
+    expose:
+      - 9200
+    ports:
+      - "9200:9200"
+    environment:
+      - 'node.name=test'
+      - 'discovery.type=single-node'
+      - 'bootstrap.memory_lock=true'
+      - 'ES_JAVA_OPTS=-Xms256m -Xmx256m'
+    deploy:
+      replicas: 1
+
+  kibana:
+    image: kibana:7.3.0
+    links:
+      - "elasticsearch"
+    ports:
+      - "5601:5601"
+    deploy:
+      replicas: 1

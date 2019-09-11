@@ -1,0 +1,1 @@
+# EFK Stack Support Docker stack and compose
